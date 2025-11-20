@@ -25,6 +25,14 @@ image:
     just bootc install to-disk --composefs-backend --via-loopback /data/bootable.img --filesystem ext4 --wipe --bootloader systemd
 
 push:
-    just build-containerfile
+    just build
     podman tag localhost/wolfi-bootc ghcr.io/vaskozl/wolfi-bootc
     podman push ghcr.io/vaskozl/wolfi-bootc
+
+vfkit:
+    vfkit \
+    --cpus 2 --memory 2048 \
+    --bootloader efi,variable-store=efi-variable-store,create \
+    --device virtio-blk,path=bootable.img \
+    --device virtio-serial,stdio \
+    --device virtio-net,nat
