@@ -7,11 +7,10 @@ The `Dockerfile` in this repo can be used to customize the install, the base ima
 
 ## Usage
 
-Customise `etc` or the Dockerfile as you wish.
 ```bash
 just build
 just image
 ```
 You can then use `bootable.img` with a VM or even flash to a disk.
 
-Note that the base image has a locked root account, but the Dockerfile runs `RUN passwd -d root` to allow passwordless root login. You are free to change this or set a new password after first boot.
+The username and password is `nori`.
