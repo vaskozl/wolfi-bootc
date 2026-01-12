@@ -1,5 +1,4 @@
-FROM ghcr.io/vaskozl/bootc:1.11.0
+FROM ghcr.io/vaskozl/bootc:1.12.0
 
 RUN apk add --no-cache \
-  systemd-default-network \
-  nori-user
+  systemd-default-network
