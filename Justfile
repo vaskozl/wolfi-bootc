@@ -1,5 +1,5 @@
 build:
-    podman build \
+    podman build --squash-all \
         -t wolfi-bootc:latest .
 
 run *ARGS:
