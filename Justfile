@@ -1,6 +1,9 @@
 build:
-    podman build --squash-all \
-        -t wolfi-bootc:latest .
+    podman manifest create ghcr.io/vaskozl/wolfi-bootc
+    podman build \
+        --platform linux/amd64,linux/arm64  \
+        --squash-all \
+        --manifest ghcr.io/vaskozl/wolfi-bootc .
 
 run *ARGS:
     podman run \
@@ -12,7 +15,7 @@ run *ARGS:
         -v /dev:/dev \
         -v $PWD:/data \
         --security-opt label=type:unconfined_t \
-        wolfi-bootc:latest {{ARGS}}
+        ghcr.io/vaskozl/wolfi-bootc:latest {{ARGS}}
 
 bootc *ARGS:
     just run bootc {{ARGS}}
@@ -26,8 +29,7 @@ image:
 
 push:
     just build
-    podman tag localhost/wolfi-bootc ghcr.io/vaskozl/wolfi-bootc
-    podman push ghcr.io/vaskozl/wolfi-bootc
+    podman manifest push ghcr.io/vaskozl/wolfi-bootc
 
 vfkit:
     vfkit \
