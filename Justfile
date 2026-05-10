@@ -1,10 +1,3 @@
-build:
-    podman manifest create ghcr.io/vaskozl/wolfi-bootc
-    podman build \
-        --platform linux/amd64,linux/arm64  \
-        --squash-all \
-        --manifest ghcr.io/vaskozl/wolfi-bootc .
-
 run *ARGS:
     podman run \
         --rm --privileged --pid=host \
@@ -15,7 +8,7 @@ run *ARGS:
         -v /dev:/dev \
         -v $PWD:/data \
         --security-opt label=type:unconfined_t \
-        ghcr.io/vaskozl/wolfi-bootc:latest {{ARGS}}
+        ghcr.io/vaskozl/niri:latest {{ARGS}}
 
 bootc *ARGS:
     just run bootc {{ARGS}}
@@ -27,14 +20,17 @@ image:
     fi
     just bootc install to-disk --composefs-backend --via-loopback /data/bootable.img --filesystem ext4 --wipe --bootloader systemd
 
-push:
-    just build
-    podman manifest push ghcr.io/vaskozl/wolfi-bootc
-
-vfkit:
+vfkit *ARGS:
     vfkit \
     --cpus 2 --memory 2048 \
     --bootloader efi,variable-store=efi-variable-store,create \
     --device virtio-blk,path=bootable.img \
     --device virtio-serial,stdio \
-    --device virtio-net,nat
+    --device virtio-net,nat {{ARGS}}
+
+vfkit-gui:
+    just vfkit \
+    --device virtio-input,keyboard \
+    --device virtio-input,pointing \
+    --device virtio-gpu,width=1920,height=1080 \
+    --gui
