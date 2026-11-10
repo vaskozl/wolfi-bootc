@@ -1,13 +1,16 @@
+selinux_mount := if path_exists("/sys/fs/selinux") == "true" { "-v /sys/fs/selinux:/sys/fs/selinux:Z" } else { "" }
+
 run *ARGS:
     podman run \
         --rm --privileged --pid=host \
         -it \
-        -v /sys/fs/selinux:/sys/fs/selinux:Z \
+        {{selinux_mount}} \
         -v /etc/containers:/etc/containers \
         -v /var/lib/containers:/var/lib/containers \
         -v /dev:/dev \
         -v $PWD:/data \
         --security-opt label=type:unconfined_t \
+        --entrypoint /usr/bin/env \
         ghcr.io/vaskozl/niri:latest {{ARGS}}
 
 bootc *ARGS:
@@ -19,6 +22,12 @@ image:
         just run fallocate -l 20G /data/bootable.img
     fi
     just bootc install to-disk --composefs-backend --via-loopback /data/bootable.img --filesystem ext4 --wipe --bootloader systemd
+
+flash DEVICE:
+    just bootc install to-disk --composefs-backend --filesystem ext4 --wipe --bootloader systemd {{DEVICE}}
+
+flash-encrypted DEVICE:
+    just bootc install to-disk --composefs-backend --block-setup tpm2-luks --filesystem ext4 --wipe --bootloader systemd {{DEVICE}}
 
 vfkit *ARGS:
     vfkit \
