@@ -27,7 +27,15 @@ flash DEVICE:
     just bootc install to-disk --composefs-backend --filesystem ext4 --wipe --bootloader systemd {{DEVICE}}
 
 flash-encrypted DEVICE:
-    just bootc install to-disk --composefs-backend --block-setup tpm2-luks --filesystem ext4 --wipe --bootloader systemd {{DEVICE}}
+    #!/usr/bin/env bash
+    set -euo pipefail
+    just flash {{DEVICE}}
+    root=$(lsblk -nrpo NAME,PARTTYPE {{DEVICE}} | awk '$2=="4f68bce3-e8cd-4db1-96e7-fbcaf984b709" {print $1}')
+    e2fsck -f -p "$root"
+    # Shrink by 32M to make room for the LUKS2 header; resize2fs isn't in the image.
+    podman run --rm --privileged -v /dev:/dev cgr.dev/chainguard/wolfi-base \
+        sh -c "apk add -q e2fsprogs-extra && resize2fs $root $(( $(cat /sys/class/block/${root##*/}/size) - 65536 ))s"
+    cryptsetup reencrypt --encrypt --type luks2 --reduce-device-size 32M "$root"
 
 vfkit *ARGS:
     vfkit \
